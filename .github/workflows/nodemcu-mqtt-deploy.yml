@@ -13,10 +13,5 @@ jobs:
           ./bin/arduino-cli config init --additional-urls http://arduino.esp8266.com/stable/package_esp8266com_index.json
           ./bin/arduino-cli core update-index
           ./bin/arduino-cli core install esp8266:esp8266
-          mv ${{ github.workspace }}/libraries ~/.arduino15/
-          cd ~/.arduino15/libraries
-          ls -la
-          ./bin/arduino-cli lib update-index
-          ./bin/arduino-cli lib list
           ./bin/arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 ${{ github.workspace }}/src --export-binaries --verbose
           ls -la
