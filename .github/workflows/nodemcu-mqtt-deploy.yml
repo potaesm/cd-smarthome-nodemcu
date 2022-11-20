@@ -14,7 +14,7 @@ jobs:
           ./bin/arduino-cli core update-index
           ./bin/arduino-cli core install esp8266:esp8266
           mv ${{ github.workspace }}/libraries ~/.arduino15/
-          cd ~/.arduino15
-          ls -la
+          ./bin/arduino-cli lib update-index
+          ./bin/arduino-cli lib list
           ./bin/arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 ${{ github.workspace }}/src --export-binaries --verbose
           ls -la
