@@ -15,5 +15,5 @@ jobs:
           ./bin/arduino-cli core install esp8266:esp8266
           ./bin/arduino-cli lib install PubSubClient
           ./bin/arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 ${{ github.workspace }}/src --export-binaries --verbose
-          cd src/build
+          cd src/build/esp8266.esp8266.nodemcuv2
           ls -la
