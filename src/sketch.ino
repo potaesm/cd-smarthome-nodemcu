@@ -36,8 +36,8 @@ int port = 1883;
 
 const char topic[]  = "main/update";
 
-const long interval = 1000;
-unsigned long previousMillis = 0;
+// const long interval = 1000;
+// unsigned long previousMillis = 0;
 
 int count = 0;
 
@@ -99,32 +99,32 @@ void loop() {
       mqttClient.print(response.getJson());
       mqttClient.endMessage();
       // mock up
-      delay(1000);
+      delay(2000);
       response.patchStringProperty("stage", BIN_DOWNLOADING);
       mqttClient.beginMessage(topic);
       mqttClient.print(response.getJson());
       mqttClient.endMessage();
-      delay(1000);
+      delay(2000);
       response.patchStringProperty("stage", BIN_DOWNLOADED);
       mqttClient.beginMessage(topic);
       mqttClient.print(response.getJson());
       mqttClient.endMessage();
-      delay(1000);
+      delay(2000);
       response.patchStringProperty("stage", UPDATING);
       mqttClient.beginMessage(topic);
       mqttClient.print(response.getJson());
       mqttClient.endMessage();
-      delay(1000);
+      delay(2000);
       response.patchStringProperty("stage", UPDATED);
       mqttClient.beginMessage(topic);
       mqttClient.print(response.getJson());
       mqttClient.endMessage();
-      delay(1000);
+      delay(2000);
       response.patchStringProperty("stage", RESTARTING);
       mqttClient.beginMessage(topic);
       mqttClient.print(response.getJson());
       mqttClient.endMessage();
-      delay(1000);
+      delay(2000);
       response.patchStringProperty("stage", STARTED);
       mqttClient.beginMessage(topic);
       mqttClient.print(response.getJson());
