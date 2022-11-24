@@ -22,7 +22,7 @@
 #define NO_UPDATES "NO_UPDATES"
 #define UPDATE_OK "UPDATE_OK"
 
-#include "arduino_secrets.h"
+#include "Secrets.h"
 char ssid[] = SECRET_SSID;
 char pass[] = SECRET_PASS;
 char *wifiSSID = SECRET_SSID;
