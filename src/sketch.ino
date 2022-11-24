@@ -38,7 +38,7 @@ int qos = 2;
 bool dup = false;
 const char topic[]  = "main/update";
 bool blinkStatus = false;
-const long interval = 250;
+const long interval = 1000;
 
 unsigned long previousMillis = 0;
 
