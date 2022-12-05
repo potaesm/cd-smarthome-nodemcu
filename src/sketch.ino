@@ -96,11 +96,11 @@ void handleESP8266Update() {
         Serial.println("HTTP_UPDATE_OK");
         response.patchStringProperty("stage", UPDATE_OK);
         sendMQTTMessage(response.getJson());
-        delay(100);
-        ESP.restart();
         break;
       }
   }
+  delay(100);
+  ESP.restart();
 }
 
 void sendMQTTMessage(String message) {
