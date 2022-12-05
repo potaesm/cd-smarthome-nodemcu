@@ -113,7 +113,8 @@ void connectMQTTBroker() {
   if (!mqttClient.connect(broker, port)) {
     Serial.print("MQTT connection failed! Error code = ");
     Serial.println(mqttClient.connectError());
-    while (1);
+    delay(100);
+    ESP.restart();
   }
   Serial.println("Connected to broker " + String(broker));
   mqttClient.subscribe(topic, qos);
