@@ -28,7 +28,7 @@ jobs:
         run: cd /home/runner/sketch/build/ && ls -la
       - name: Deploy
         id: deployment
-        uses: potaesm/github-actions-arduino@v1.1.2
+        uses: potaesm/github-actions-arduino@v1.1.3
         with:
           deviceId: DEVICE_ID
       - name: Get Result
