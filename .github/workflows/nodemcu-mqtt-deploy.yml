@@ -28,9 +28,12 @@ jobs:
       #   run: cd /home/runner/sketch/build/ && ls -la
       - name: Deploy
         id: deployment
-        uses: potaesm/github-actions-arduino@v1.1.3
+        uses: potaesm/github-actions-arduino@v1.1.4
         with:
           deviceId: DEVICE_ID
-          timeLimit: 300000
+          mqttUrl: mqtt://puffin.rmq2.cloudamqp.com
+          mqttUsername: gwbvwhzr:gwbvwhzr
+          mqttPassword: BH4UyDm74GHbzdsYJOFtvZL7LTIM_bNB
+          mqttTopic: main/update
       - name: Get Result
         run: echo "The deployment was ${{ steps.deployment.outputs.result }}"
