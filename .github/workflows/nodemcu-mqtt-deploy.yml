@@ -19,7 +19,7 @@ jobs:
         uses: ArminJo/arduino-test-compile@v3
         with:
           sketch-names: Sketch.ino
-          sketch-names-find-start: src/
+          sketch-names-find-start: Sketch/
           required-libraries: ArduinoMqttClient
           arduino-board-fqbn: esp8266:esp8266:nodemcuv2
           platform-default-url: http://arduino.esp8266.com/stable/package_esp8266com_index.json
@@ -28,7 +28,7 @@ jobs:
       #   run: cd /home/runner/Sketch/build/ && ls -la
       - name: Deploy
         id: deployment
-        uses: potaesm/github-actions-arduino@v1.2.4
+        uses: potaesm/github-actions-arduino@v1.2.5
         with:
           deviceId: DEVICE_ID
           mqttUrl: mqtt://puffin.rmq2.cloudamqp.com
