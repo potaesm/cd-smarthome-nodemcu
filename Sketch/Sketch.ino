@@ -1,4 +1,3 @@
-#include <ArduinoMqttClient.h>
 #if defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT) || defined(ARDUINO_AVR_UNO_WIFI_REV2)
 #include <WiFiNINA.h>
 #elif defined(ARDUINO_SAMD_MKR1000)
@@ -9,46 +8,28 @@
 #include <WiFi.h>
 #endif
 
-
-
+#include <ArduinoMqttClient.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
+
+WiFiClient wifiClient;
+MqttClient mqttClient(wifiClient);
+
+#define DEVMODE
 
 #include "Config.h"
 #include "Stage.h"
 #include "JsonHelper.h"
 #include "WifiHelper.h"
-
-WiFiClient wifiClient;
-MqttClient mqttClient(wifiClient);
+#include "OTAUpdateHelper.h"
 
 bool blinkStatus = false;
 const long interval = 1000;
 unsigned long previousMillis = 0;
 
-void handleMQTTMessage(MqttClient mqttClient, void (*)(String commit, String url));
-
-void handleMQTTMessage(MqttClient mqttClient, void (*function)(String commit, String url)){
-  if (mqttClient.parseMessage() && String(mqttClient.messageTopic()) == TOPIC) {
-    String message = "";
-    while (mqttClient.available()) {
-      char currentChar = (char)mqttClient.read();
-      message.concat(currentChar);
-    }
-    message = parseJson(message);
-    Serial.println("Message: " + message);
-    String id = getProperty(message, "id");
-    String commit = getProperty(message, "commit");
-    String url = getProperty(message, "url");
-    bool isAllowed = (id == "") ? true : (id == DEVICE_ID) ? true : false;
-    if (url != "" && isAllowed) {
-      (*function)(commit, url);
-    }
-  }
-}
-
 void handleESP8266Update(String commit, String url) {
   String response = "{}";
+  // Send BIN_URL_RECEIVED
   response = addProperty(response, "id", DEVICE_ID);
   response = addProperty(response, "commit", commit);
   response = addProperty(response, "stage", BIN_URL_RECEIVED);
@@ -59,69 +40,54 @@ void handleESP8266Update(String commit, String url) {
   // ESPhttpUpdate.closeConnectionsOnUpdate(false);
   ESPhttpUpdate.rebootOnUpdate(false);
   t_httpUpdate_return ESPHttpUpdateReturn = ESPhttpUpdate.update(wifiClient, url);
-  connectMQTTBroker();
+  // Send result
+  connectMQTTBroker(softwareReset);
   switch (ESPHttpUpdateReturn) {
     case HTTP_UPDATE_FAILED: {
-        Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+        // Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
         response = updateProperty(response, "stage", String(UPDATE_FAILED) + " (" + String(ESPhttpUpdate.getLastError()) + "): " + ESPhttpUpdate.getLastErrorString());
         sendMQTTMessage(response);
         break;
       }
     case HTTP_UPDATE_NO_UPDATES: {
-        Serial.println("HTTP_UPDATE_NO_UPDATES");
+        // Serial.println("HTTP_UPDATE_NO_UPDATES");
         response = updateProperty(response, "stage", NO_UPDATES);
         sendMQTTMessage(response);
         break;
       }
     case HTTP_UPDATE_OK: {
-        Serial.println("HTTP_UPDATE_OK");
+        // Serial.println("HTTP_UPDATE_OK");
         response = updateProperty(response, "stage", UPDATE_OK);
         sendMQTTMessage(response);
         break;
       }
   }
+  softwareReset();
+}
+
+void softwareReset() {
   delay(100);
   ESP.restart();
-}
-
-void sendMQTTMessage(String message) {
-  mqttClient.beginMessage(TOPIC, message.length(), MQTT_MESSAGE_RETAINED, MQTT_MESSAGE_QOS);
-  mqttClient.print(message);
-  mqttClient.endMessage();
-}
-
-void connectMQTTBroker() {
-  if (!mqttClient.connect(MQTT_BROKER, MQTT_PORT)) {
-    Serial.print("MQTT connection failed! Error code = ");
-    Serial.println(mqttClient.connectError());
-    delay(100);
-    ESP.restart();
-  }
-  Serial.println("Connected to broker " + String(MQTT_BROKER));
-  mqttClient.subscribe(TOPIC, MQTT_SUBSCRIBE_QOS);
-  Serial.println("Subscribed to topic " + String(TOPIC));
 }
 
 void setup() {
   Serial.begin(115200);
 
-  char *wifiSSID = WIFI_SSID;
-  char *wifiPassword = WIFI_PASS;
-  connectWifi(wifiSSID, wifiPassword);
+  connectWifi();
 
   mqttClient.setId(DEVICE_ID);
   mqttClient.setUsernamePassword(MQTT_USERNAME, MQTT_PASS);
-
-  connectMQTTBroker();
+  connectMQTTBroker(softwareReset);
 
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
-  while (!mqttClient.connected()) {
-    connectMQTTBroker();
+  if (!mqttClient.connected()) {
+    connectMQTTBroker(softwareReset);
   }
-  handleMQTTMessage(mqttClient, handleESP8266Update);
+  handleMQTTMessage(handleESP8266Update);
+
   // do something else
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
