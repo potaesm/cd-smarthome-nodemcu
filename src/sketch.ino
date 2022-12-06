@@ -15,39 +15,25 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
 
-#define DEVICE_ID "DEVICE_ID"
-
-#define BIN_URL_RECEIVED "BIN_URL_RECEIVED"
-#define UPDATE_FAILED "UPDATE_FAILED"
-#define NO_UPDATES "NO_UPDATES"
-#define UPDATE_OK "UPDATE_OK"
-
-#include "Secrets.h"
-char *wifiSSID = SECRET_SSID;
-char *wifiPassword = SECRET_PASS;
+#include "Config.h"
+#include "Stage.h"
 
 WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);
 
-const char broker[] = "puffin.rmq2.cloudamqp.com";
-int port = 1883;
-bool retained = false;
-int qos = 2;
-const char topic[]  = "main/update";
 bool blinkStatus = false;
 const long interval = 1000;
-
 unsigned long previousMillis = 0;
-
-void handleESP8266Update();
-void handleMQTTMessage(void (*)());
 
 String id = "";
 String commit = "";
 String url = "";
 
+void handleESP8266Update();
+void handleMQTTMessage(void (*)());
+
 void handleMQTTMessage(void (*function)()){
-  if (mqttClient.parseMessage() && String(mqttClient.messageTopic()) == String(topic)) {
+  if (mqttClient.parseMessage() && String(mqttClient.messageTopic()) == TOPIC) {
     String message = "";
     while (mqttClient.available()) {
       char currentChar = (char)mqttClient.read();
@@ -104,31 +90,32 @@ void handleESP8266Update() {
 }
 
 void sendMQTTMessage(String message) {
-  mqttClient.beginMessage(topic, message.length(), retained, qos);
+  mqttClient.beginMessage(TOPIC, message.length(), MQTT_MESSAGE_RETAINED, MQTT_MESSAGE_QOS);
   mqttClient.print(message);
   mqttClient.endMessage();
 }
 
 void connectMQTTBroker() {
-  if (!mqttClient.connect(broker, port)) {
+  if (!mqttClient.connect(MQTT_BROKER, MQTT_PORT)) {
     Serial.print("MQTT connection failed! Error code = ");
     Serial.println(mqttClient.connectError());
     delay(100);
     ESP.restart();
   }
-  Serial.println("Connected to broker " + String(broker));
-  mqttClient.subscribe(topic, qos);
-  Serial.println("Subscribed to topic " + String(topic));
+  Serial.println("Connected to broker " + String(MQTT_BROKER));
+  mqttClient.subscribe(TOPIC, MQTT_SUBSCRIBE_QOS);
+  Serial.println("Subscribed to topic " + String(TOPIC));
 }
 
 void setup() {
   Serial.begin(115200);
 
-  connectWifi(wifiSSID, wifiPassword);
-  checkInternet(wifiClient, wifiSSID, wifiPassword);
+  connectWifi(WIFI_SSID, WIFI_PASS);
+  checkInternet(wifiClient, WIFI_SSID, WIFI_PASS);
 
   mqttClient.setId(DEVICE_ID);
   mqttClient.setUsernamePassword(MQTT_USERNAME, MQTT_PASS);
+
   connectMQTTBroker();
 
   pinMode(LED_BUILTIN, OUTPUT);
