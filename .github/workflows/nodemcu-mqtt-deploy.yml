@@ -14,7 +14,7 @@ jobs:
       #     ./bin/arduino-cli core update-index
       #     ./bin/arduino-cli core install esp8266:esp8266
       #     ./bin/arduino-cli lib install ArduinoMqttClient
-      #     ./bin/arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 ${{ github.workspace }}/src/sketch.ino --output sketch.bin -v
+      #     ./bin/arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 ${{ github.workspace }}/src/Sketch.ino --output Sketch.bin -v
       - name: Compile .ino
         uses: ArminJo/arduino-test-compile@v3
         with:
@@ -25,10 +25,10 @@ jobs:
           platform-default-url: http://arduino.esp8266.com/stable/package_esp8266com_index.json
           set-build-path: true
       # - name: Check build
-      #   run: cd /home/runner/sketch/build/ && ls -la
+      #   run: cd /home/runner/Sketch/build/ && ls -la
       - name: Deploy
         id: deployment
-        uses: potaesm/github-actions-arduino@v1.2.3
+        uses: potaesm/github-actions-arduino@v1.2.4
         with:
           deviceId: DEVICE_ID
           mqttUrl: mqtt://puffin.rmq2.cloudamqp.com
