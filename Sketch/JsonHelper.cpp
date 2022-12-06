@@ -44,7 +44,7 @@ String parseJson(String payload)
   }
 }
 
-String getValue(String payload, String key)
+String getProperty(String payload, String key)
 {
   unsigned short childSkipCounter = 0;
   unsigned short splitIndex = 0;
@@ -132,7 +132,7 @@ String addProperty(String payload, String key, String value)
   return output;
 }
 
-String modifyValue(String payload, String key, String value)
+String updateProperty(String payload, String key, String value)
 {
   unsigned short childSkipCounter = 0;
   unsigned short splitIndex = 0;

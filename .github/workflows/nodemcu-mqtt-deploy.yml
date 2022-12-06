@@ -24,11 +24,11 @@ jobs:
           arduino-board-fqbn: esp8266:esp8266:nodemcuv2
           platform-default-url: http://arduino.esp8266.com/stable/package_esp8266com_index.json
           set-build-path: true
-      - name: Check build
-        run: cd ${{ github.workspace }}/Sketch/build/ && ls -la
+      # - name: Check build
+      #   run: cd ${{ github.workspace }}/Sketch/build/ && ls -la
       - name: Deploy
         id: deployment
-        uses: potaesm/github-actions-arduino@v1.2.5
+        uses: potaesm/github-actions-arduino@v1.2.6
         with:
           deviceId: DEVICE_ID
           binaryBuildPath: ${{ github.workspace }}/Sketch/build/
