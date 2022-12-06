@@ -18,7 +18,7 @@ jobs:
       - name: Compile .ino
         uses: ArminJo/arduino-test-compile@v3
         with:
-          sketch-names: Main.ino
+          sketch-names: Sketch.ino
           sketch-names-find-start: src/
           required-libraries: ArduinoMqttClient
           arduino-board-fqbn: esp8266:esp8266:nodemcuv2
