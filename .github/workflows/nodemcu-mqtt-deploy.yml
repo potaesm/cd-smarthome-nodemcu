@@ -13,14 +13,14 @@ jobs:
       #     ./bin/arduino-cli config init --additional-urls http://arduino.esp8266.com/stable/package_esp8266com_index.json
       #     ./bin/arduino-cli core update-index
       #     ./bin/arduino-cli core install esp8266:esp8266
-      #     ./bin/arduino-cli lib install ArduinoMqttClient
+      #     ./bin/arduino-cli lib install PubSubClient
       #     ./bin/arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 ${{ github.workspace }}/Sketch/Sketch.ino --output ${{ github.workspace }}/Sketch/build/Sketch.ino.bin -v
       - name: Compile .ino
         uses: ArminJo/arduino-test-compile@v3
         with:
           sketch-names: Sketch.ino
           sketch-names-find-start: Sketch/
-          required-libraries: ArduinoMqttClient
+          required-libraries: PubSubClient
           arduino-board-fqbn: esp8266:esp8266:nodemcuv2
           platform-default-url: http://arduino.esp8266.com/stable/package_esp8266com_index.json
           set-build-path: true
