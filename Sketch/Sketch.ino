@@ -75,7 +75,9 @@ void mqttPayloadProcess(char *topic, byte *payload, unsigned int payloadLength)
 
 void softwareReset()
 {
-  delay(100);
+  WiFi.disconnect();
+  WiFi.mode(WIFI_OFF);
+  delay(1000);
   ESP.restart();
 }
 
