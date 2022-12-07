@@ -1,14 +1,16 @@
 #ifndef WifiHelper_h
 #define WifiHelper_h
 #include "Arduino.h"
-#if defined(ESP8266)
-#warning "Using ESP8266"
-#include "ESP8266WiFi.h"
-#elif defined(ESP32)
-#warning "Using ESP32"
-#include "WiFi.h"
+#if defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT) || defined(ARDUINO_AVR_UNO_WIFI_REV2)
+#include <WiFiNINA.h>
+#elif defined(ARDUINO_SAMD_MKR1000)
+#include <WiFi101.h>
+#elif defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266WiFi.h>
+#elif defined(ARDUINO_PORTENTA_H7_M7) || defined(ARDUINO_NICLA_VISION) || defined(ARDUINO_ARCH_ESP32)
+#include <WiFi.h>
 #else
-#error "No ESP8266 or ESP32 detected"
+#error "No WiFi device detected"
 #endif
 
 #include "Config.h"
