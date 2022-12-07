@@ -35,36 +35,42 @@ void handleESP8266Update(String commit, String url)
   mqttClient.unsubscribe(MQTT_TOPIC);
   mqttClient.disconnect();
   // Start update
-  ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
-  // ESPhttpUpdate.closeConnectionsOnUpdate(false);
-  ESPhttpUpdate.rebootOnUpdate(false);
-  t_httpUpdate_return ESPHttpUpdateReturn = ESPhttpUpdate.update(wifiClient, url);
-  // Reconnect MQTT and send result
-  connectMQTTBroker(softwareReset);
-  switch (ESPHttpUpdateReturn)
+  byte updateAttemptNumber = 0;
+  while (updateAttemptNumber < 5)
   {
-  case HTTP_UPDATE_FAILED:
-  {
-    // Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
-    response = updateProperty(response, "stage", String(UPDATE_FAILED) + " (" + String(ESPhttpUpdate.getLastError()) + "): " + ESPhttpUpdate.getLastErrorString());
-    sendMQTTMessage(response);
-    break;
+    connectWifi();
+    ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
+    // ESPhttpUpdate.closeConnectionsOnUpdate(false);
+    ESPhttpUpdate.rebootOnUpdate(false);
+    t_httpUpdate_return ESPHttpUpdateReturn = ESPhttpUpdate.update(wifiClient, url);
+    // Reconnect MQTT and send result
+    connectMQTTBroker(softwareReset);
+    switch (ESPHttpUpdateReturn)
+    {
+    case HTTP_UPDATE_FAILED:
+    {
+      // Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+      response = updateProperty(response, "stage", String(UPDATE_FAILED) + " (" + String(ESPhttpUpdate.getLastError()) + "): " + ESPhttpUpdate.getLastErrorString());
+      updateAttemptNumber++;
+      break;
+    }
+    case HTTP_UPDATE_NO_UPDATES:
+    {
+      // Serial.println("HTTP_UPDATE_NO_UPDATES");
+      response = updateProperty(response, "stage", NO_UPDATES);
+      updateAttemptNumber = 5;
+      break;
+    }
+    case HTTP_UPDATE_OK:
+    {
+      // Serial.println("HTTP_UPDATE_OK");
+      response = updateProperty(response, "stage", UPDATE_OK);
+      updateAttemptNumber = 5;
+      break;
+    }
+    }
   }
-  case HTTP_UPDATE_NO_UPDATES:
-  {
-    // Serial.println("HTTP_UPDATE_NO_UPDATES");
-    response = updateProperty(response, "stage", NO_UPDATES);
-    sendMQTTMessage(response);
-    break;
-  }
-  case HTTP_UPDATE_OK:
-  {
-    // Serial.println("HTTP_UPDATE_OK");
-    response = updateProperty(response, "stage", UPDATE_OK);
-    sendMQTTMessage(response);
-    break;
-  }
-  }
+  sendMQTTMessage(response);
   softwareReset();
 }
 
@@ -75,9 +81,10 @@ void mqttPayloadProcess(char *topic, byte *payload, unsigned int payloadLength)
 
 void softwareReset()
 {
+  delay(500);
   WiFi.disconnect();
   WiFi.mode(WIFI_OFF);
-  delay(1000);
+  delay(500);
   ESP.restart();
 }
 
@@ -92,6 +99,10 @@ void setup()
 
 void loop()
 {
+  if (!isWiFiConnected())
+  {
+    connectWifi();
+  }
   if (!mqttClient.connected())
   {
     connectMQTTBroker(softwareReset);

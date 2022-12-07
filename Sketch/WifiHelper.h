@@ -28,7 +28,7 @@ void __setHostname()
 
 void __wifiConnectLoop(char *wifiSSID)
 {
-    byte wifiConnectCount = 0;
+    byte wifiAttemptNumber = 0;
 #if defined(DEVMODE)
     Serial.println("Connecting");
 #endif
@@ -38,10 +38,10 @@ void __wifiConnectLoop(char *wifiSSID)
         Serial.print(".");
 #endif
         delay(1000);
-        wifiConnectCount++;
-        if (wifiConnectCount > 20)
+        wifiAttemptNumber++;
+        if (wifiAttemptNumber > 20)
         {
-            ESP.reset();
+            ESP.restart();
         }
     }
 #if defined(DEVMODE)
@@ -63,7 +63,7 @@ void connectWifi(char *wifiSSID = WIFI_SSID, char *wifiPassword = WIFI_PASS)
     WiFi.begin(wifiSSID, wifiPassword);
     WiFi.persistent(false);
     WiFi.setAutoConnect(false);
-    WiFi.setAutoReconnect(true);
+    WiFi.setAutoReconnect(false);
     if (WiFi.waitForConnectResult() != WL_CONNECTED)
     {
         __wifiConnectLoop(wifiSSID);

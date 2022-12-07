@@ -34,12 +34,12 @@ void handleMQTTUpdateMessage(void (*function)(String commit, String url), char* 
 }
 
 void connectMQTTBroker(void (*function)(), const char id[] = DEVICE_ID, const char user[] = MQTT_USERNAME, const char pass[] = MQTT_PASS, const char topic[] = MQTT_TOPIC, const byte qos = MQTT_SUBSCRIBE_QOS) {
-  byte attempNumber = 0;
+  byte mqttAttemptNumber = 0;
 #if defined(DEVMODE)
     Serial.println("Attempting MQTT connection");
 #endif
   while (!mqttClient.connected()) {
-    attempNumber++;
+    mqttAttemptNumber++;
 #if defined(DEVMODE)
     Serial.print(".");
 #endif
@@ -48,7 +48,7 @@ void connectMQTTBroker(void (*function)(), const char id[] = DEVICE_ID, const ch
       Serial.println();
       Serial.println("MQTT broker connected");
 #endif
-    } else if (attempNumber == 5) {
+    } else if (mqttAttemptNumber == 10) {
       // Restart
       (*function)();
     }
