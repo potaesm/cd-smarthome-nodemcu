@@ -20,7 +20,7 @@ jobs:
         with:
           sketch-names: Sketch.ino
           sketch-names-find-start: Sketch/
-          required-libraries: PubSubClient
+          required-libraries: PubSubClient,OneWire,DallasTemperature
           arduino-board-fqbn: esp8266:esp8266:nodemcuv2
           platform-default-url: http://arduino.esp8266.com/stable/package_esp8266com_index.json
           set-build-path: true
