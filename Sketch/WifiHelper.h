@@ -62,7 +62,7 @@ void connectWifi(char *wifiSSID = WIFI_SSID, char *wifiPassword = WIFI_PASS)
     __setHostname();
     WiFi.begin(wifiSSID, wifiPassword);
     WiFi.persistent(true);
-    WiFi.setAutoConnect(true);
+    WiFi.setAutoConnect(false);
     WiFi.setAutoReconnect(true);
     if (WiFi.waitForConnectResult() != WL_CONNECTED)
     {
