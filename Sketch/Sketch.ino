@@ -5,6 +5,11 @@
 
 #define NO_SENSOR 0
 #define TEMPERATURE_SENSOR 1
+#define HEART_RATE_SENSOR 2
+byte sensor = NO_SENSOR;
+bool enableHeartRateSensor = false;
+byte heartRateReadIntervalCounter = 0;
+unsigned long heartRatePreviousMillis = 0;
 
 #include <PubSubClient.h>
 #include <ESP8266HTTPClient.h>
@@ -17,11 +22,10 @@
 WiFiClient wifiClient;
 PubSubClient mqttClient(MQTT_BROKER, MQTT_PORT, wifiClient);
 
-#include "OTAUpdateHelper.h"
+unsigned long globalPreviousMillis = 0;
 
-byte sensor = NO_SENSOR;
-const long interval = 1000;
-unsigned long previousMillis = 0;
+#include "OTAUpdateHelper.h"
+#include "Utils.h"
 
 void handleESP8266Update(String commit, String url)
 {
@@ -79,21 +83,62 @@ void mqttPayloadProcess(char *topic, byte *payload, unsigned int payloadLength)
   handleMQTTUpdateMessage(handleESP8266Update, topic, payload, payloadLength);
 }
 
-void softwareReset()
+void handleHeartRateSensor()
 {
-  delay(500);
-  WiFi.disconnect();
-  WiFi.mode(WIFI_OFF);
-  delay(500);
-  ESP.restart();
+  if (enableHeartRateSensor)
+  {
+    Serial.println(analogRead(0));
+  }
+}
+
+void handleSensors()
+{
+  sensor++;
+  switch (sensor)
+  {
+  case TEMPERATURE_SENSOR:
+  {
+    // GPIO where the DS18B20 is connected to
+    OneWire oneWire(D3);
+    DallasTemperature DS18B20(&oneWire);
+    DS18B20.begin();
+    DS18B20.requestTemperatures();
+    float temperatureC = DS18B20.getTempCByIndex(0);
+    // float temperatureF = DS18B20.getTempFByIndex(0);
+    Serial.print(temperatureC);
+    Serial.println("ºC");
+    // Serial.print(temperatureF);
+    // Serial.println("ºF");
+    break;
+  }
+  case HEART_RATE_SENSOR:
+  {
+    // Read for 1000 * 10 = 10 seconds
+    enableHeartRateSensor = heartRateReadIntervalCounter <= 10;
+    if (enableHeartRateSensor)
+    {
+      heartRateReadIntervalCounter++;
+      sensor--;
+    }
+    else
+    {
+      heartRateReadIntervalCounter = 0;
+    }
+    break;
+  }
+  default:
+    sensor = NO_SENSOR;
+    break;
+  }
 }
 
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(9600);
   connectWifi();
   // mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
   mqttClient.setCallback(mqttPayloadProcess);
+  // pinMode(0, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
@@ -110,31 +155,6 @@ void loop()
   mqttClient.loop();
 
   // Main tasks
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval)
-  {
-    previousMillis = currentMillis;
-    sensor++;
-    switch (sensor)
-    {
-    case TEMPERATURE_SENSOR:
-    {
-      // GPIO where the DS18B20 is connected to
-      OneWire oneWire(D3);
-      DallasTemperature DS18B20(&oneWire);
-      DS18B20.begin();
-      DS18B20.requestTemperatures();
-      float temperatureC = DS18B20.getTempCByIndex(0);
-      // float temperatureF = DS18B20.getTempFByIndex(0);
-      Serial.print(temperatureC);
-      Serial.println("ºC");
-      // Serial.print(temperatureF);
-      // Serial.println("ºF");
-      break;
-    }
-    default:
-      sensor = NO_SENSOR;
-      break;
-    }
-  }
+  globalPreviousMillis = callbackRoutine(handleSensors, globalPreviousMillis, 1000);
+  heartRatePreviousMillis = callbackRoutine(handleHeartRateSensor, heartRatePreviousMillis, 10);
 }
