@@ -2,14 +2,23 @@
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <Wire.h>
+#include "MAX30100_PulseOximeter.h"
+#include "LittleFS.h"
+
+PulseOximeter POX;
 
 #define NO_SENSOR 0
-#define TEMPERATURE_SENSOR 1
-#define HEART_RATE_SENSOR 2
-byte sensor = NO_SENSOR;
-bool enableHeartRateSensor = false;
-byte heartRateReadIntervalCounter = 0;
-unsigned long heartRatePreviousMillis = 0;
+#define MAX30100_SENSOR 1
+#define DS18B20_SENSOR 2
+#define LIMIT_SENSOR 3
+int sensor = NO_SENSOR;
+byte reportNumber = 0;
+float prevoiusBPM = 0.0f;
+float accBPM = 0.0f;
+float accSpO2 = 0.0f;
+
+unsigned long globalPreviousMillis = 0;
 
 #include <PubSubClient.h>
 #include <ESP8266HTTPClient.h>
@@ -21,8 +30,6 @@ unsigned long heartRatePreviousMillis = 0;
 
 WiFiClient wifiClient;
 PubSubClient mqttClient(MQTT_BROKER, MQTT_PORT, wifiClient);
-
-unsigned long globalPreviousMillis = 0;
 
 #include "OTAUpdateHelper.h"
 #include "Utils.h"
@@ -83,63 +90,15 @@ void mqttPayloadProcess(char *topic, byte *payload, unsigned int payloadLength)
   handleMQTTUpdateMessage(handleESP8266Update, topic, payload, payloadLength);
 }
 
-void handleHeartRateSensor()
-{
-  if (enableHeartRateSensor)
-  {
-    Serial.println(analogRead(0));
-  }
-}
-
-void handleSensors()
-{
-  sensor++;
-  switch (sensor)
-  {
-  case TEMPERATURE_SENSOR:
-  {
-    // GPIO where the DS18B20 is connected to
-    OneWire oneWire(D3);
-    DallasTemperature DS18B20(&oneWire);
-    DS18B20.begin();
-    DS18B20.requestTemperatures();
-    float temperatureC = DS18B20.getTempCByIndex(0);
-    // float temperatureF = DS18B20.getTempFByIndex(0);
-    Serial.print(temperatureC);
-    Serial.println("ºC");
-    // Serial.print(temperatureF);
-    // Serial.println("ºF");
-    break;
-  }
-  case HEART_RATE_SENSOR:
-  {
-    // Read for 1000 * 10 = 10 seconds
-    enableHeartRateSensor = heartRateReadIntervalCounter <= 10;
-    if (enableHeartRateSensor)
-    {
-      heartRateReadIntervalCounter++;
-      sensor--;
-    }
-    else
-    {
-      heartRateReadIntervalCounter = 0;
-    }
-    break;
-  }
-  default:
-    sensor = NO_SENSOR;
-    break;
-  }
-}
-
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
   connectWifi();
   // mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
   mqttClient.setCallback(mqttPayloadProcess);
-  // pinMode(0, INPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
+  connectMQTTBroker(softwareReset);
+  sensor = beginSensor();
 }
 
 void loop()
@@ -155,6 +114,27 @@ void loop()
   mqttClient.loop();
 
   // Main tasks
-  globalPreviousMillis = callbackRoutine(handleSensors, globalPreviousMillis, 1000);
-  heartRatePreviousMillis = callbackRoutine(handleHeartRateSensor, heartRatePreviousMillis, 10);
+  switch (sensor)
+  {
+  case MAX30100_SENSOR:
+  {
+    POX.update();
+    globalPreviousMillis = callbackRoutine(reportMAX30100, globalPreviousMillis, 1000);
+    break;
+  }
+  case DS18B20_SENSOR:
+  {
+    reportDS18B20();
+    break;
+  }
+  default:
+    sensor = MAX30100_SENSOR;
+    break;
+  }
+  if (reportNumber == MAX_REPORT_NUMBER)
+  {
+    sensor++;
+    writeData(String(sensor));
+    softwareReset();
+  }
 }
