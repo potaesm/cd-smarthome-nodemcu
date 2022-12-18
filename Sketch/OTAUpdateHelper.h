@@ -62,6 +62,7 @@ void connectMQTTBroker(void (*function)(), const char id[] = DEVICE_ID, const ch
 void sendMQTTMessage(String message, char topic[] = MQTT_TOPIC, bool retained = MQTT_MESSAGE_RETAINED) {
 #if defined(DEVMODE)
   Serial.println("Send message: " + message);
+  Serial.println("Topic: " + String(topic));
 #endif
   mqttClient.publish(topic, message.c_str(), retained);
 }

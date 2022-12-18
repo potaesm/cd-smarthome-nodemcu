@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Node MCU Build & Deploy
     steps:
-      - name: Check out repo
+      - name: Check Out Repo
         uses: actions/checkout@v2.5.0
       # - name: Compile .ino
       #   run: |
@@ -15,7 +15,7 @@ jobs:
       #     ./bin/arduino-cli core install esp8266:esp8266
       #     ./bin/arduino-cli lib install PubSubClient
       #     ./bin/arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 ${{ github.workspace }}/Sketch/Sketch.ino --output ${{ github.workspace }}/Sketch/build/Sketch.ino.bin -v
-      - name: Compile .ino
+      - name: Compile Code
         uses: ArminJo/arduino-test-compile@v3
         with:
           sketch-names: Sketch.ino
@@ -26,9 +26,9 @@ jobs:
           set-build-path: true
       # - name: Check build
       #   run: cd ${{ github.workspace }}/Sketch/build/ && ls -la
-      - name: Deploy
+      - name: Deploy Binary
         id: deployment
-        uses: potaesm/github-actions-arduino@v1.2.6
+        uses: potaesm/github-actions-arduino@v1.2.7
         with:
           deviceId: DEVICE_ID
           binaryBuildPath: ${{ github.workspace }}/Sketch/build/
@@ -37,5 +37,5 @@ jobs:
           mqttPassword: BH4UyDm74GHbzdsYJOFtvZL7LTIM_bNB
           mqttTopic: main/update
           timeLimit: 300000
-      - name: Get Result
+      - name: Get Deployment Result
         run: echo "The deployment was ${{ steps.deployment.outputs.result }}"

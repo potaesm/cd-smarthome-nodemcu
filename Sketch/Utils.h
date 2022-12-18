@@ -23,9 +23,10 @@ void softwareReset()
   ESP.restart();
 }
 
-#define STORE "/store.txt"
+#define SENSOR_STORE "/sensor.txt"
+#define REPORT_STORE "/report.txt"
 
-String readData(String filePath = STORE)
+String readData(String filePath = SENSOR_STORE)
 {
   String data = "";
   File file = LittleFS.open(filePath, "r");
@@ -37,12 +38,17 @@ String readData(String filePath = STORE)
   return data;
 }
 
-void writeData(String data, String filePath = STORE)
+void writeData(String data, String filePath = SENSOR_STORE)
 {
   File file = LittleFS.open(filePath, "w");
   file.print(data);
   file.close();
   delay(1);
+}
+
+void removeData(String filePath = SENSOR_STORE)
+{
+    LittleFS.remove(filePath);
 }
 
 int beginSensor()
@@ -54,7 +60,7 @@ int beginSensor()
   }
   int sensor = readData().toInt();
   if (sensor == NO_SENSOR || sensor == LIMIT_SENSOR)
-    sensor = MAX30100_SENSOR;
+    sensor = DS18B20_SENSOR;
   switch (sensor)
   {
   case MAX30100_SENSOR:
@@ -76,7 +82,8 @@ int beginSensor()
   return sensor;
 }
 
-#define MAX_REPORT_NUMBER 5
+#define MAX_REPORT_NUMBER 3
+#define MAX_SENSOR_ATTEMPT_NUMER 24
 
 void reportDS18B20()
 {
@@ -84,14 +91,25 @@ void reportDS18B20()
   DallasTemperature DS18B20(&oneWire);
   DS18B20.begin();
   DS18B20.requestTemperatures();
-  float temperatureC = DS18B20.getTempCByIndex(0);
-  float temperatureF = DS18B20.getTempFByIndex(0);
-  Serial.println("DS18B20");
-  Serial.print(temperatureC);
-  Serial.println("ºC");
-  Serial.print(temperatureF);
-  Serial.println("ºF");
-  reportNumber = MAX_REPORT_NUMBER;
+  float tempC = DS18B20.getTempCByIndex(0);
+  float tempF = DS18B20.getTempFByIndex(0);
+  accTempC += tempC;
+  accTempF += tempF;
+  reportNumber++;
+  if (reportNumber == MAX_REPORT_NUMBER) {
+    float avgTempC = round(accTempC / MAX_REPORT_NUMBER);
+    float avgTempF = round(accTempF / MAX_REPORT_NUMBER);
+    String avgTempCelsius = String(avgTempC) + "ºC";
+    String avgTempFahrenheit = String(avgTempF) + "ºF";
+    Serial.println();
+    Serial.print("Average temperature: ");
+    Serial.print(avgTempCelsius);
+    Serial.print(", ");
+    Serial.println(avgTempFahrenheit);
+    writeData(String(avgTempCelsius), REPORT_STORE);
+    accTempC = 0.0f;
+    accTempF = 0.0f;
+  }
 }
 
 void reportMAX30100()
@@ -108,11 +126,27 @@ void reportMAX30100()
     {
       float avgBPM = round(accBPM / MAX_REPORT_NUMBER);
       float avgSpO2 = round(accSpO2 / MAX_REPORT_NUMBER);
+      String avgHeartRate = String(avgBPM) + " bpm";
+      String avgBloodOxygenLevel = String(avgSpO2) + "%";
       Serial.println();
-      Serial.print("Average BPM: ");
-      Serial.println(avgBPM);
-      Serial.print("Average SpO2: ");
-      Serial.println(avgSpO2);
+      Serial.print("Average heart rate: ");
+      Serial.println(avgHeartRate);
+      Serial.print("Average blood oxygen level: ");
+      Serial.println(avgBloodOxygenLevel);
+      // Send PPP data
+      String data = "{}";
+      String avgTempCelsius = readData(REPORT_STORE);
+      data = addProperty(data, "id", DEVICE_ID);
+      data = addProperty(data, "temp", avgTempCelsius);
+      data = addProperty(data, "heart_rate", avgHeartRate);
+      data = addProperty(data, "blood_oxygen", avgBloodOxygenLevel);
+      data = addProperty(data, "email", "21mcs020@nith.ac.in");
+      data = addProperty(data, "report_length", "5");
+      sendMQTTMessage(data, "app/data");
+      removeData(REPORT_STORE);
+      accBPM = 0.0f;
+      accSpO2 = 0.0f;
+      sensorAttemptNumber = 0;
     }
   }
   else
@@ -120,6 +154,13 @@ void reportMAX30100()
     reportNumber = 0;
     accBPM = 0.0f;
     accSpO2 = 0.0f;
+    if (sensorAttemptNumber == MAX_SENSOR_ATTEMPT_NUMER) {
+      Serial.println("Failed to get heart rate and blood oxygen level");
+      reportNumber = MAX_REPORT_NUMBER;
+      sensorAttemptNumber = 0;
+    } else {
+      sensorAttemptNumber++;
+    }
   }
   prevoiusBPM = BPM;
 }

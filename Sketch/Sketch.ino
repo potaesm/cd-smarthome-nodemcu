@@ -9,12 +9,15 @@
 PulseOximeter POX;
 
 #define NO_SENSOR 0
-#define MAX30100_SENSOR 1
-#define DS18B20_SENSOR 2
+#define DS18B20_SENSOR 1
+#define MAX30100_SENSOR 2
 #define LIMIT_SENSOR 3
 int sensor = NO_SENSOR;
 byte reportNumber = 0;
+byte sensorAttemptNumber = 0;
 float prevoiusBPM = 0.0f;
+float accTempC = 0.0f;
+float accTempF = 0.0f;
 float accBPM = 0.0f;
 float accSpO2 = 0.0f;
 
@@ -54,6 +57,7 @@ void handleESP8266Update(String commit, String url)
     // ESPhttpUpdate.closeConnectionsOnUpdate(false);
     ESPhttpUpdate.rebootOnUpdate(false);
     t_httpUpdate_return ESPHttpUpdateReturn = ESPhttpUpdate.update(wifiClient, url);
+    removeData();
     // Reconnect MQTT and send result
     connectMQTTBroker(softwareReset);
     switch (ESPHttpUpdateReturn)
@@ -124,11 +128,11 @@ void loop()
   }
   case DS18B20_SENSOR:
   {
-    reportDS18B20();
+    globalPreviousMillis = callbackRoutine(reportDS18B20, globalPreviousMillis, 1000);
     break;
   }
   default:
-    sensor = MAX30100_SENSOR;
+    sensor = DS18B20_SENSOR;
     break;
   }
   if (reportNumber == MAX_REPORT_NUMBER)
