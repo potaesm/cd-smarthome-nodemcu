@@ -28,7 +28,7 @@ jobs:
       #   run: cd ${{ github.workspace }}/Sketch/build/ && ls -la
       - name: Deploy Binary
         id: deployment
-        uses: potaesm/github-actions-arduino@v1.2.7
+        uses: potaesm/github-actions-arduino@v1.2.8
         with:
           deviceId: DEVICE_ID
           binaryBuildPath: ${{ github.workspace }}/Sketch/build/
@@ -36,6 +36,6 @@ jobs:
           mqttUsername: gwbvwhzr:gwbvwhzr
           mqttPassword: BH4UyDm74GHbzdsYJOFtvZL7LTIM_bNB
           mqttTopic: main/update
-          timeLimit: 300000
+          timeLimit: 180000
       - name: Get Deployment Result
         run: echo "The deployment was ${{ steps.deployment.outputs.result }}"
