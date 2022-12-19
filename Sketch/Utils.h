@@ -28,37 +28,36 @@ void softwareReset()
 
 String readData(String filePath = SENSOR_STORE)
 {
-  return "1";
-  // String data = "";
-  // File file = LittleFS.open(filePath, "r");
-  // if (!file)
-  //   return data;
-  // while (file.available())
-  //   data.concat(file.readString());
-  // file.close();
-  // return data;
+  String data = "";
+  File file = LittleFS.open(filePath, "r");
+  if (!file)
+    return data;
+  while (file.available())
+    data.concat(file.readString());
+  file.close();
+  return data;
 }
 
 void writeData(String data, String filePath = SENSOR_STORE)
 {
-  // File file = LittleFS.open(filePath, "w");
-  // file.print(data);
-  // file.close();
-  // delay(1);
+  File file = LittleFS.open(filePath, "w");
+  file.print(data);
+  file.close();
+  delay(1);
 }
 
 void removeData(String filePath = SENSOR_STORE)
 {
-    // LittleFS.remove(filePath);
+  LittleFS.remove(filePath);
 }
 
 int beginSensor()
 {
-  // if (!LittleFS.begin())
-  // {
-  //   Serial.println("An Error has occurred while mounting LittleFS");
-  //   softwareReset();
-  // }
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    softwareReset();
+  }
   int sensor = readData().toInt();
   if (sensor == NO_SENSOR || sensor == LIMIT_SENSOR)
     sensor = DS18B20_SENSOR;

@@ -4,7 +4,7 @@
 #include <DallasTemperature.h>
 #include <Wire.h>
 #include "MAX30100_PulseOximeter.h"
-// #include "LittleFS.h"
+#include "LittleFS.h"
 
 PulseOximeter POX;
 
