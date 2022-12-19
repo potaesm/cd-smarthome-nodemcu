@@ -1,0 +1,11 @@
+{
+  "name": "report-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Suthinan Musitmani",
+  "license": "MIT",
+  "dependencies": {
+    "mqtt": "^4.3.7",
+    "nodemailer": "^6.8.0"
+  }
+}

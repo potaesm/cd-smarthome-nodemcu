@@ -141,6 +141,7 @@ void reportMAX30100()
       data = addProperty(data, "heart_rate", avgHeartRate);
       data = addProperty(data, "blood_oxygen", avgBloodOxygenLevel);
       data = addProperty(data, "email", "21mcs020@nith.ac.in");
+      data = addProperty(data, "name", "Suthinan Musitmani");
       data = addProperty(data, "report_length", "5");
       sendMQTTMessage(data, "app/data");
       removeData(REPORT_STORE);
