@@ -22,9 +22,9 @@ function randomInt(min = 0, max = 1) {
 
 setInterval(() => {
 	const email = '21mcs020@nith.ac.in';
-	const name = 'Suthinan Musitmani';
-	const report_length = '5';
-	const data = { id: 'DEVICE_ID', temp: `${randomInt(15, 20)}°C`, heart_rate: `${randomInt(70, 80)} bpm`, blood_oxygen: `${randomInt(95, 99)}%`, email, name, report_length };
+	const p_name = 'Suthinan Musitmani';
+	const report_length = 5;
+	const data = { id: 'DEVICE_ID', temp: randomInt(15, 20), heart_rate: randomInt(70, 80), blood_oxygen: randomInt(95, 99), email, p_name, report_length };
 	console.log('Publish:', data);
 	client.publish(topic, JSON.stringify(data), { qos: 2, retain: true });
 }, 1500);

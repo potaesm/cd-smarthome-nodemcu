@@ -99,8 +99,8 @@ void reportDS18B20()
   if (reportNumber == MAX_REPORT_NUMBER) {
     float avgTempC = round(accTempC / MAX_REPORT_NUMBER);
     float avgTempF = round(accTempF / MAX_REPORT_NUMBER);
-    String avgTempCelsius = String(avgTempC) + "ºC";
-    String avgTempFahrenheit = String(avgTempF) + "ºF";
+    String avgTempCelsius = String(avgTempC);
+    String avgTempFahrenheit = String(avgTempF);
     Serial.println();
     Serial.print("Average temperature: ");
     Serial.print(avgTempCelsius);
@@ -126,8 +126,8 @@ void reportMAX30100()
     {
       float avgBPM = round(accBPM / MAX_REPORT_NUMBER);
       float avgSpO2 = round(accSpO2 / MAX_REPORT_NUMBER);
-      String avgHeartRate = String(avgBPM) + " bpm";
-      String avgBloodOxygenLevel = String(avgSpO2) + "%";
+      String avgHeartRate = String(avgBPM);
+      String avgBloodOxygenLevel = String(avgSpO2);
       Serial.println();
       Serial.print("Average heart rate: ");
       Serial.println(avgHeartRate);
@@ -137,12 +137,12 @@ void reportMAX30100()
       String data = "{}";
       String avgTempCelsius = readData(REPORT_STORE);
       data = addProperty(data, "id", DEVICE_ID);
-      data = addProperty(data, "temp", avgTempCelsius);
-      data = addProperty(data, "heart_rate", avgHeartRate);
-      data = addProperty(data, "blood_oxygen", avgBloodOxygenLevel);
+      data = addProperty(data, "temp", avgTempCelsius, false);
+      data = addProperty(data, "heart_rate", avgHeartRate, false);
+      data = addProperty(data, "blood_oxygen", avgBloodOxygenLevel, false);
       data = addProperty(data, "email", "21mcs020@nith.ac.in");
       data = addProperty(data, "name", "Suthinan Musitmani2");
-      data = addProperty(data, "report_length", "5");
+      data = addProperty(data, "report_length", "5", false);
       sendMQTTMessage(data, "app/data");
       removeData(REPORT_STORE);
       accBPM = 0.0f;

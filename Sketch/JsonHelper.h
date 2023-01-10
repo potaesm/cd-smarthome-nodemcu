@@ -116,18 +116,23 @@ String getProperty(String payload, String key)
   return returnValue.substring(1, returnValue.length() - 1);
 }
 
-String addProperty(String payload, String key, String value)
+String addProperty(String payload, String key, String value, bool isString = true)
 {
   String output = "{";
+  if (payload[1] == ',')
+  {
+    payload.replace("{,", "{");
+  }
+  String modifer = isString ? "\"" : "";
   String extractedJson = payload.substring(1, payload.length() - 1);
   if (extractedJson.length() == 0)
   {
-    output += "\"" + key + "\":" + "\"" + value + "\"";
+    output += "\"" + key + "\":" + modifer + value + modifer;
   }
   else
   {
     output += extractedJson;
-    output += ",\"" + key + "\":" + "\"" + value + "\"";
+    output += ",\"" + key + "\":" + modifer + value + modifer;
   }
   output += "}";
   return output;
