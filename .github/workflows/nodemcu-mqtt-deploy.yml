@@ -28,7 +28,7 @@ jobs:
       #   run: cd ${{ github.workspace }}/Sketch/build/ && ls -la
       - name: Deploy Binary
         id: deployment
-        uses: potaesm/github-actions-arduino@v1.3.0
+        uses: potaesm/github-actions-arduino@v1.3.1
         with:
           deviceId: DEVICE_ID
           binaryBuildPath: ${{ github.workspace }}/Sketch/build/
