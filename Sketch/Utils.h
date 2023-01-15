@@ -82,7 +82,7 @@ int beginSensor()
   return sensor;
 }
 
-#define MAX_REPORT_NUMBER 3
+#define MAX_REPORT_NUMBER 2
 #define MAX_SENSOR_ATTEMPT_NUMER 24
 
 void reportDS18B20()
@@ -140,8 +140,8 @@ void reportMAX30100()
       data = addProperty(data, "temp", avgTempCelsius, false);
       data = addProperty(data, "heart_rate", avgHeartRate, false);
       data = addProperty(data, "blood_oxygen", avgBloodOxygenLevel, false);
-      data = addProperty(data, "email", "21mcs020@nith.ac.in");
-      data = addProperty(data, "name", "Suthinan Musitmani2");
+      data = addProperty(data, "email", "suthinan.musitmani@gmail.com");
+      data = addProperty(data, "p_name", "Suthinan Musitmani");
       data = addProperty(data, "report_length", "5", false);
       sendMQTTMessage(data, "app/data");
       removeData(REPORT_STORE);

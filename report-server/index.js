@@ -10,14 +10,14 @@ const nodeMailer = {
 		port: 465,
 		secure: true,
 		auth: {
-			user: 'guitarzeed.school.manager@gmail.com',
-			pass: 'ddaiqediuwskcpte'
+			user: 'remote.health.system@gmail.com',
+			pass: 'ieugkprkkwjcrlfd'
 		}
 	},
 	mailOptions: {
 		from: {
-			name: 'Data Reporter',
-			address: 'guitarzeed.school.manager@gmail.com'
+			name: 'Health Reporter',
+			address: 'remote.health.system@gmail.com'
 		}
 	}
 };
@@ -34,6 +34,7 @@ const store = {};
 client.on('connect', function () {
 	client.subscribe(topic, function (err) {
 		if (!err) {
+			client.publish(topic, null, { qos: 2, retain: true });
 			client.publish(topic, JSON.stringify({ message: `Report server has subscribed the topic ${topic}` }));
 		}
 	});
@@ -41,10 +42,10 @@ client.on('connect', function () {
 
 client.on('message', async function (topic, message) {
 	try {
-		const payload = JSON.parse(message.toString());
+		const payload = JSON.parse(message.toString() || '{}');
 		console.log({ topic, payload });
 		let { id, temp, heart_rate, blood_oxygen, email, p_name, report_length } = payload;
-		if (!id || !temp || !heart_rate || !blood_oxygen) return;
+		if (!id || !p_name || !temp || !heart_rate || !blood_oxygen) return;
 		const timestamp = new Date().toLocaleString('en-GB').split(', ');
 		const pppData = { temp, heart_rate, blood_oxygen, timestamp: timestamp[1] };
 		const uid = JSON.stringify({ id, email, p_name }).split('').sort().join('');
@@ -65,7 +66,7 @@ client.on('message', async function (topic, message) {
 					const blood_oxygen_chart_url = await generateChartImage(blood_oxygen_data, 'Blood Oxygen Saturation (%)');
 					// console.log({ temp_chart_url, heart_rate_chart_url, blood_oxygen_chart_url });
 					await sendReport({ p_name, email, temp_chart_url, heart_rate_chart_url, blood_oxygen_chart_url });
-					delete store[id];
+					store[id] = undefined;
 					client.end();
 				}
 			} else {
