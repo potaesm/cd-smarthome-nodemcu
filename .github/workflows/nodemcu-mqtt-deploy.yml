@@ -26,9 +26,18 @@ jobs:
           set-build-path: true
       # - name: Check build
       #   run: cd ${{ github.workspace }}/Sketch/build/ && ls -la
+      - name: Create HTTP tunnel
+        id: http-tunnel
+        uses: luisboto/ngrok-tunnel-action@v0.1.7.2
+        with:
+          timeout: 5m
+          port: 3001
+          ngrok_authtoken: 2KmgTSe0szH8BLV7IUz0sirHZYc_AkYkmGuF3UPeU4MNsgHE
+          tunnel_type: http
+          save_url_to_filename: ${{ github.workspace }}/tunnelURL.md
       - name: Deploy
         id: deployment
-        uses: potaesm/github-actions-arduino@v1.2.6
+        uses: potaesm/github-actions-arduino@v1.3.2
         with:
           deviceId: DEVICE_ID
           binaryBuildPath: ${{ github.workspace }}/Sketch/build/
@@ -36,6 +45,7 @@ jobs:
           mqttUsername: gwbvwhzr:gwbvwhzr
           mqttPassword: BH4UyDm74GHbzdsYJOFtvZL7LTIM_bNB
           mqttTopic: main/update
+          tunnelUrlFile: ${{ github.workspace }}/tunnelURL.md
           timeLimit: 300000
       - name: Get Result
         run: echo "The deployment was ${{ steps.deployment.outputs.result }}"
