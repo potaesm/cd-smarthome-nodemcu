@@ -7,14 +7,6 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v2.5.0
-      # - name: Compile .ino
-      #   run: |
-      #     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh -s 0.9.0
-      #     ./bin/arduino-cli config init --additional-urls http://arduino.esp8266.com/stable/package_esp8266com_index.json
-      #     ./bin/arduino-cli core update-index
-      #     ./bin/arduino-cli core install esp8266:esp8266
-      #     ./bin/arduino-cli lib install PubSubClient
-      #     ./bin/arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 ${{ github.workspace }}/Sketch/Sketch.ino --output ${{ github.workspace }}/Sketch/build/Sketch.ino.bin -v
       - name: Compile .ino
         uses: ArminJo/arduino-test-compile@v3
         with:
@@ -24,8 +16,6 @@ jobs:
           arduino-board-fqbn: esp8266:esp8266:nodemcuv2
           platform-default-url: http://arduino.esp8266.com/stable/package_esp8266com_index.json
           set-build-path: true
-      # - name: Check build
-      #   run: cd ${{ github.workspace }}/Sketch/build/ && ls -la
       - name: Create HTTP tunnel
         id: http-tunnel
         uses: luisboto/ngrok-tunnel-action@v0.1.7.2
